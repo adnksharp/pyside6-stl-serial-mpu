@@ -1,8 +1,43 @@
 import sys
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSpinBox
 from PySide6.QtGui import QPalette
+from PySide6.QtCore import QThread, Signal, Slot
 from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 import vtk
+import serial
+
+class Serial(QThread):
+    data = Signal(list)
+
+    def __init__(self, port, baudrate):
+        super().__init__()
+        self.port = port
+        self.baudrate = baudrate
+        self.ser = None
+        self.running = False
+
+    def run(self):
+        try:
+            self.ino = serial.Serial(self.port, self.baudrate)
+            self.running = True
+            while self.running:
+                try:
+                    line = self.ino.readline().decode('utf-8').rstrip()
+                except:
+                    return
+                self.data.emit([float(i) for i in line.split(',')])
+        except serial.SerialException as e:
+            print(f"[err] {e}")
+        finally:
+            if self.ino and self.ino.is_open:
+                self.ino.close()
+
+    def stop(self):
+        self.running = False
+        if self.ino and self.ino.is_open:
+            self.ino.close()
+        self.wait()
+
 
 class VTKWidget():
     def __init__(self, parent):
@@ -69,6 +104,18 @@ class Widget(QWidget):
         self.vtk = VTKWidget(self)
         layout.addWidget(self.vtk.widget)
 
+        self.board = Serial("/dev/ttyACM0", 115200)  # Reemplaza con tu puerto y baudrate
+
+        self.board.data.connect(self.serialEvent)
+        self.board.start()
+    
+    @Slot(str)
+    def serialEvent(self, data):
+        print(data)
+
+    def closeEvent(self, event):
+        self.board.stop()
+        event.accept()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
