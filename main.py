@@ -25,7 +25,7 @@ class Serial(QThread):
                     line = self.ino.readline().decode('utf-8').rstrip()
                     self.data.emit([float(i) for i in line.split(',')])
                 except:
-                    self.data.emit([0.0 for i in range(2)])
+                    self.data.emit([0.0 for i in range(3)])
                     return
         except serial.SerialException as e:
             print(f"[err] {e}")
@@ -91,13 +91,11 @@ class VTKWidget():
         self.widget.GetRenderWindow().Render()
 
     def rotate(self, rot):
-        if self.actors:
+        if self.actors and len(rot) == 3:
             print(rot)
 
             for actor in self.actors:
-                actor.SetOrientation(rot[1], 0, rot[0])
-
-            #self.ren.ResetCamera()
+                actor.SetOrientation(rot[1], rot[2], rot[0])
 
             self.widget.GetRenderWindow().Render()
     
