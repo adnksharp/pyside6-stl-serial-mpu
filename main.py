@@ -23,9 +23,10 @@ class Serial(QThread):
             while self.running:
                 try:
                     line = self.ino.readline().decode('utf-8').rstrip()
+                    self.data.emit([float(i) for i in line.split(',')])
                 except:
+                    self.data.emit([0.0 for i in range(2)])
                     return
-                self.data.emit([float(i) for i in line.split(',')])
         except serial.SerialException as e:
             print(f"[err] {e}")
         finally:
@@ -88,6 +89,17 @@ class VTKWidget():
 
         self.ren.ResetCamera()
         self.widget.GetRenderWindow().Render()
+
+    def rotate(self, rot):
+        if self.actors:
+            print(rot)
+
+            for actor in self.actors:
+                actor.SetOrientation(rot[1], 0, rot[0])
+
+            #self.ren.ResetCamera()
+
+            self.widget.GetRenderWindow().Render()
     
 
 class Widget(QWidget):
@@ -111,7 +123,7 @@ class Widget(QWidget):
     
     @Slot(str)
     def serialEvent(self, data):
-        print(data)
+        self.vtk.rotate(data)
 
     def closeEvent(self, event):
         self.board.stop()
