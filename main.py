@@ -92,12 +92,11 @@ class VTKWidget():
 
     def rotate(self, rot):
         if self.actors and len(rot) == 3:
-            print(rot)
-
             for actor in self.actors:
                 actor.SetOrientation(rot[1], rot[2], rot[0])
 
             self.widget.GetRenderWindow().Render()
+            self.ren.ResetCamera()
     
 
 class Widget(QWidget):

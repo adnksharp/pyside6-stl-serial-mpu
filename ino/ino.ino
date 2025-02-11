@@ -2,7 +2,7 @@
 #include <Wire.h>
 #define l LED_BUILTIN
 
-float alpha = 0.98, dtime;
+float alpha = 0.96, dtime;
 
 struct {
 	float accel, gyro, filter;
@@ -45,5 +45,5 @@ void loop(void)
 	Yaw.filter += (Yaw.gyro * 180 / M_PI);
 
 	Serial.println(String(Roll.filter) + ',' + String(Pitch.filter) + ',' + String(Yaw.filter));
-	delay(10);
+	delay(50);
 }
